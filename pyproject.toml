@@ -1,0 +1,8 @@
+[project]
+name = "nauvis-ledger"
+version = "0.1.0"
+description = "Factorio production data into capacity vs supply and forecast scenarios"
+requires-python = ">=3.13"
+dependencies = [
+    "factorio-rcon-py>=2.1.3",
+]
