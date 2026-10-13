@@ -9,6 +9,7 @@
 - [ ] Load existing saves via `--start-server` to backfill history (README method 1)
 
 ## Done
+- [x] Segregated big-save rows into `data/big-save.jsonl` (test fixture); `snapshots.jsonl` is new-save only (2026-10-13)
 - [x] Create `data/`, uv project, `factorio-rcon-py` collector (2026-10-13)
 - [x] Enable local RCON in config.ini, password in .env (2026-10-13)
 - [x] Document setup in docs/rcon-setup-macos.md (2026-10-13)

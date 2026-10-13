@@ -36,3 +36,22 @@ uv run --env-file .env collect.py --once --print   # same, and print the raw JSO
 uv run --env-file .env collect.py                  # poll every 60s
 ```
 
+## Data files
+
+- `data/snapshots.jsonl` — the research dataset: the fresh single-player save (Nauvis only, no enemies), tick-continuous within the save
+- `data/big-save.jsonl` — 4 snapshots from a much larger save (10 surfaces incl. Vulcanus/Gleba/Fulgora, 182 item types on Nauvis); kept as a scale-test fixture for the analysis code
+
+## Capacity vs supply analysis (in progress)
+
+The goal is to turn the snapshot stream into capacity planning answers: where consumption plateaus, whether a line needs expansion, and when.
+
+- Flatten snapshots into a long table: `tick, surface, kind (items/fluids), direction (produced/consumed), name, amount`
+- Compute per-interval rates by diffing the lifetime cumulative totals between snapshots
+- Plateau detection: where a consumption rate pins at or exceeds the production rate, that flow is capacity-constrained and an expansion candidate
+- Timing: with a buffer level, buffer ÷ gap gives time-to-starve, i.e. the expansion deadline
+- Backtest ("was I wrong"): hide the last N snapshots, predict from the rest, compare against what actually happened
+
+## Development
+
+Developed with [opencode](https://opencode.ai) driven by a local model on an RTX Titan via llama.cpp — `Qwen3.8-27B-Q4_K_M.gguf` with `-c 65536 --cache-type-k f16 --cache-type-v f16 -ub 1024 -ngl 99 --flash-attn on`.
+
