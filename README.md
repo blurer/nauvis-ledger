@@ -1,6 +1,10 @@
 # nauvis-ledger
 Taking raw Factorio data streams and processing into capacity vs supply and forecast scenarios using Python
 
+## Development
+
+Developed with [opencode](https://opencode.ai) driven by a local [Qwen3.8-27B](https://huggingface.co/Qwen/Qwen3.8-27B) model on an RTX Titan via llama.cpp — `Qwen3.8-27B-Q4_K_M.gguf` with `-c 65536 --cache-type-k f16 --cache-type-v f16 -ub 1024 -ngl 99 --flash-attn on`.
+
 ## Methods of running:
 - 1: Extract data from an existing run and see the usage over time (wip)
 - 2: Headless server operations and real time dashboard with future state capacity scenarios (tbd)
@@ -50,8 +54,4 @@ The goal is to turn the snapshot stream into capacity planning answers: where co
 - Plateau detection: where a consumption rate pins at or exceeds the production rate, that flow is capacity-constrained and an expansion candidate
 - Timing: with a buffer level, buffer ÷ gap gives time-to-starve, i.e. the expansion deadline
 - Backtest ("was I wrong"): hide the last N snapshots, predict from the rest, compare against what actually happened
-
-## Development
-
-Developed with [opencode](https://opencode.ai) driven by a local model on an RTX Titan via llama.cpp — `Qwen3.8-27B-Q4_K_M.gguf` with `-c 65536 --cache-type-k f16 --cache-type-v f16 -ub 1024 -ngl 99 --flash-attn on`.
 
