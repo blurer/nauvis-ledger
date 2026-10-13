@@ -40,8 +40,44 @@ uv run --env-file .env collect.py --once --print   # same, and print the raw JSO
 uv run --env-file .env collect.py                  # poll every 60s
 ```
 
+## Collecting
+
+The main mode is the full raw dump: everything the API exposes (items, fluids, power per electric network, kills, builds, pollution, evolution, logistic networks, technologies and research queue, entity counts, platforms, players, mods), one JSON line per minute. Nothing is cleaned or aggregated.
+
+```sh
+uv run --env-file .env collect.py --dump           # full dump every 60s -> data/<map_seed>/dumps.jsonl
+uv run --env-file .env collect.py --dump --once    # one full dump
+uv run --env-file .env collect.py --history all    # the game's stored flow history, every window
+```
+
+Output goes to one folder per save, named by map seed (`data/<map_seed>/`). Every save of the same map shares a seed, so they share a folder.
+
+To run the minutely dump in the background, add these to `~/.zshrc`. `ledger-start` does nothing if a collector is already running; output goes to `data/collector.log`.
+
+```sh
+alias ledger-start='pgrep -f "collect.py --dump" >/dev/null && echo "ledger already running" || { (cd ~/wrk/nauvis-ledger && nohup uv run --env-file .env python -u collect.py --dump >> data/collector.log 2>&1 &); echo "ledger started"; }'
+alias ledger-stop='pkill -f "collect.py --dump" && echo "ledger stopped" || echo "ledger not running"'
+```
+
+`--history` reads the history behind the in-game production graphs. The game keeps 300 samples per window:
+
+| Window | Sample size | Covers |
+|---|---|---|
+| `one_hour` | 12 s | last 1 h |
+| `ten_hours` | 2 min | last 10 h |
+| `fifty_hours` | 10 min | last 50 h |
+| `two_hundred_fifty_hours` | 50 min | last 250 h |
+| `one_thousand_hours` | 3 h 20 min | last 1000 h |
+
+The game merges older samples into coarser ones, so past play can't be read back at finer resolution. Running the minutely dump keeps per-minute data from then on.
+
 ## Data files
 
+- `data/<map_seed>/dumps.jsonl` — minutely full raw dumps, one JSON object per line
+- `data/<map_seed>/history-<window>-<tick>.json` — flow history read at that tick: per surface, per category, per name, 300 samples (index 0 = newest)
+- `data/<map_seed>/snapshots.jsonl` — the smaller snapshot format (items, fluids, power, research)
+- `data/<map_seed>/dump-<tick>.json` — single dumps taken before `--dump` became a loop
+- `data/collector.log` — output of `ledger-start`
 - `data/snapshots.jsonl` — the research dataset: the fresh single-player save (Nauvis only, no enemies), tick-continuous within the save
 - `data/big-save.jsonl` — 4 snapshots from a much larger save (10 surfaces incl. Vulcanus/Gleba/Fulgora, 182 item types on Nauvis); kept as a scale-test fixture for the analysis code
 

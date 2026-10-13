@@ -118,9 +118,10 @@ def main() -> None:
     parser.add_argument("--password", default=os.environ.get("FACTORIO_RCON_PASSWORD"))
     parser.add_argument("--interval", type=float, default=60.0, help="seconds between snapshots")
     parser.add_argument("--once", action="store_true", help="take one snapshot and exit")
-    parser.add_argument("--out", type=Path, help="override the per-save data/<seed>/snapshots.jsonl path")
+    parser.add_argument("--out", type=Path, help="override the per-save data/<seed>/*.jsonl path")
     parser.add_argument("--print", action="store_true", help="print each raw snapshot as it is saved")
-    parser.add_argument("--dump", action="store_true", help="save one full raw dump to data/<seed>/dump-<tick>.json and exit")
+    parser.add_argument("--dump", action="store_true",
+                        help="collect the full raw dump instead of the snapshot, appended to data/<seed>/dumps.jsonl")
     parser.add_argument("--history", choices=PRECISIONS + ["all"],
                         help="save the game's 300-sample flow history at this precision to "
                         "data/<seed>/history-<precision>-<tick>.json and exit")
@@ -148,21 +149,13 @@ def main() -> None:
             print(f"tick={history['tick']} {out.stat().st_size} bytes -> {out}")
         return
 
-    if args.dump:
-        client.connect()
-        dump = take_snapshot(client, DUMP_LUA)
-        out = args.out or DATA_DIR / str(dump["map_seed"]) / f"dump-{dump['tick']}.json"
-        out.parent.mkdir(parents=True, exist_ok=True)
-        out.write_text(json.dumps(dump))
-        print(f"tick={dump['tick']} {out.stat().st_size} bytes -> {out}")
-        return
-
+    lua, filename = (DUMP_LUA, "dumps.jsonl") if args.dump else (SNAPSHOT_LUA, "snapshots.jsonl")
     while True:
         try:
             if client.rcon_socket is None:
                 client.connect()
-            snapshot = take_snapshot(client)
-            out = args.out or DATA_DIR / str(snapshot["map_seed"]) / "snapshots.jsonl"
+            snapshot = take_snapshot(client, lua)
+            out = args.out or DATA_DIR / str(snapshot["map_seed"]) / filename
             out.parent.mkdir(parents=True, exist_ok=True)
             with out.open("a") as f:
                 f.write(json.dumps(snapshot) + "\n")
@@ -173,6 +166,8 @@ def main() -> None:
         except factorio_rcon.RCONNetworkError as exc:
             print(f"RCON unavailable ({exc}); retrying")
             client.close()
+        except RuntimeError as exc:
+            print(f"{exc}; retrying")
         if args.once:
             break
         time.sleep(args.interval)

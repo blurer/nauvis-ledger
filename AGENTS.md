@@ -4,9 +4,11 @@
 
 **Run the collector:**
 ```sh
-uv run --env-file .env collect.py --once       # one snapshot
-uv run --env-file .env collect.py              # poll every 60s
-uv run --env-file .env collect.py --once --print   # print raw JSON
+uv run --env-file .env collect.py --dump           # full raw dump every 60s -> data/<map_seed>/dumps.jsonl
+uv run --env-file .env collect.py --dump --once    # one full dump
+uv run --env-file .env collect.py --history all    # stored flow history, every precision window
+uv run --env-file .env collect.py --once --print   # one small snapshot, printed
+ledger-start / ledger-stop                         # zsh aliases: background minutely dump (see README)
 ```
 
 **Read snapshots with pandas:**
@@ -31,7 +33,7 @@ uv run read_data.py
 
 ## Architecture
 
-- `collect.py`: RCON client that polls Factorio and appends raw JSON to `data/snapshots.jsonl`
+- `collect.py`: RCON client that polls Factorio and appends raw JSON to `data/<map_seed>/` (full dumps, snapshots, flow history)
 - `read_data.py`: pandas reader for `snapshots.jsonl`
 
 ## Environment
