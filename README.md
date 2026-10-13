@@ -1,5 +1,5 @@
 # nauvis-ledger
-Taking raw Factorio data streams and processing into capacity vs supply and forecast scenarios using Python
+aking raw Factorio RCON telemetry and processing it into capacity vs supply ledgers and forecast scenarios in Python with pandas. Built with opencode and open-weights models to test their viability for this use case: hyper-focused on simple, deterministic scripts with tests that validate every figure. 
 
 ## Development
 
